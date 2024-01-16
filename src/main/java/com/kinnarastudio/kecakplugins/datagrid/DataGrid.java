@@ -26,6 +26,7 @@ import org.joget.workflow.model.service.WorkflowManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.kecak.apps.exception.ApiException;
 import org.kecak.apps.form.model.DataJsonControllerHandler;
 import org.kecak.apps.form.service.FormDataUtil;
 import org.springframework.context.ApplicationContext;
@@ -562,7 +563,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     }
 
     private String getFormAttachmentLabel(String columnKey, String primaryKey, Map<String, Form> formCache) {
-        // get form grid's form
+        // get grid's form
         Form formGridForm = generateForm(getPropertyFormDefId(), formCache);
         Element formAttachmentElement = searchElementById(formGridForm, columnKey);
         if (formAttachmentElement != null) {
@@ -589,7 +590,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
      * @return
      */
     private JSONObject getFormAttachmentJsonRow(String columnKey, String primaryKey, Map<String, Form> formCache) {
-        // construct form grid's form
+        // construct grid's form
         Form formGridForm = generateForm(getPropertyFormDefId(), formCache);
 
         Element formAttachmentElement = searchElementById(formGridForm, columnKey);
@@ -1109,7 +1110,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         try {
             String formId = getRequiredParameter(request, "formId");
             Form form = Optional.ofNullable(generateForm(formId))
-                    .orElseThrow(() -> new RestApiException(HttpServletResponse.SC_BAD_REQUEST, String.format("Form [%s] is not available", formId)));
+                    .orElseThrow(() -> new ApiException(HttpServletResponse.SC_BAD_REQUEST, String.format("Form [%s] is not available", formId)));
 
             String sectionId = getOptionalParameter(request, "sectionId");
             Section section = findElement(sectionId, form, Section.class);
@@ -1117,7 +1118,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
             Element parent = section != null ? section : form;
             String formGridId = getRequiredParameter(request, "formGridId");
             DataGrid dataGrid = Optional.ofNullable(findElement(formGridId, parent, DataGrid.class))
-                    .orElseThrow(() -> new RestApiException(HttpServletResponse.SC_BAD_REQUEST, String.format("Form Grid Element [%s] is not available in section [%s] form [%s]", formGridId, sectionId, formId)));
+                    .orElseThrow(() -> new ApiException(HttpServletResponse.SC_BAD_REQUEST, String.format("Form Grid Element [%s] is not available in section [%s] form [%s]", formGridId, sectionId, formId)));
 
             String method = request.getMethod();
             if ("GET".equalsIgnoreCase(method)) {
@@ -1135,10 +1136,10 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                         responseBody.put("formattedValue", formattedValue);
                         response.getWriter().write(responseBody.toString());
                     } catch (JSONException e) {
-                        throw new RestApiException(HttpServletResponse.SC_BAD_REQUEST, e);
+                        throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, e);
                     }
                 } else {
-                    throw new RestApiException(HttpServletResponse.SC_BAD_REQUEST, "Action is not recognized");
+                    throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, "Action is not recognized");
                 }
             } else if ("POST".equalsIgnoreCase(method)) {
                 String contentType = request.getContentType();
@@ -1148,10 +1149,10 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                     postApplicationJson(request, response, dataGrid);
                 }
             } else {
-                throw new RestApiException(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Method [" + method + "] is not allowed");
+                throw new ApiException(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Method [" + method + "] is not allowed");
             }
 
-        } catch (RestApiException e) {
+        } catch (ApiException e) {
             response.sendError(e.getErrorCode(), e.getMessage());
         }
     }
@@ -1160,9 +1161,9 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
      * @param request
      * @param response
      * @param dataGrid
-     * @throws RestApiException
+     * @throws ApiException
      */
-    protected void postMultipartFormData(HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) throws RestApiException {
+    protected void postMultipartFormData(HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) throws ApiException {
         try {
             ApplicationContext applicationContext = AppUtil.getApplicationContext();
             WorkflowManager workflowManager = (WorkflowManager) applicationContext.getBean("workflowManager");
@@ -1272,7 +1273,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
             response.getWriter().write(responseBody.toString());
 
         } catch (IOException | JSONException e) {
-            throw new RestApiException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
+            throw new ApiException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -1280,9 +1281,9 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
      * @param request
      * @param response
      * @param dataGrid
-     * @throws RestApiException
+     * @throws ApiException
      */
-    protected void postApplicationJson(final HttpServletRequest request, final HttpServletResponse response, final DataGrid dataGrid) throws RestApiException {
+    protected void postApplicationJson(final HttpServletRequest request, final HttpServletResponse response, final DataGrid dataGrid) throws ApiException {
         ApplicationContext applicationContext = AppUtil.getApplicationContext();
         WorkflowManager workflowManager = (WorkflowManager) applicationContext.getBean("workflowManager");
 
@@ -1331,13 +1332,13 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                 responseBody.put("validation_error", new JSONObject(formErrors));
             }
         } catch (JSONException e) {
-            throw new RestApiException(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }
 
         try {
             response.getWriter().write(responseBody.toString());
         } catch (IOException e) {
-            throw new RestApiException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
+            throw new ApiException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -1388,27 +1389,27 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
      *
      * @param request
      * @return
-     * @throws RestApiException
+     * @throws ApiException
      */
-    private JSONObject getRequestBody(HttpServletRequest request) throws RestApiException {
+    private JSONObject getRequestBody(HttpServletRequest request) throws ApiException {
         try {
             InputStream inputStream = request.getInputStream();
             try (BufferedReader bf = new BufferedReader(new InputStreamReader(inputStream))) {
                 return new JSONObject(bf.lines().collect(Collectors.joining()));
             } catch (JSONException e) {
-                throw new RestApiException(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
             }
         } catch (IOException e) {
-            throw new RestApiException(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }
 
     }
 
     @Nonnull
-    private String getRequiredParameter(HttpServletRequest request, String parameterName) throws RestApiException {
+    private String getRequiredParameter(HttpServletRequest request, String parameterName) throws ApiException {
         return Optional.ofNullable(request.getParameter(parameterName))
                 .filter(s -> !s.isEmpty())
-                .orElseThrow(() -> new RestApiException(HttpServletResponse.SC_BAD_REQUEST, String.format("Parameter [%s] is not supplied", parameterName)));
+                .orElseThrow(() -> new ApiException(HttpServletResponse.SC_BAD_REQUEST, String.format("Parameter [%s] is not supplied", parameterName)));
     }
 
     @Nonnull

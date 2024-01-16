@@ -1,0 +1,12 @@
+[{
+  "title" : "@@datagrid.foreignKeyField@@",
+  "properties" : [{
+    "name" : "id",
+    "label" : "@@form.hiddenfield.id@@",
+    "type" : "autocomplete",
+    "required" : "True",
+    "regex_validation" : "^[a-zA-Z0-9_]+$",
+    "validation_message" : "@@form.hiddenfield.invalidId@@",
+    "options_callback" : "FormBuilder.getAllFieldOptions"
+  }]
+}]

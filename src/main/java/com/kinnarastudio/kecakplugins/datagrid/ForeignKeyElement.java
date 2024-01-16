@@ -2,8 +2,12 @@ package com.kinnarastudio.kecakplugins.datagrid;
 
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.lib.HiddenField;
+import org.joget.apps.form.model.FormData;
+import org.joget.apps.form.service.FormUtil;
+import org.joget.commons.util.ResourceBundleUtil;
 import org.joget.plugin.base.PluginManager;
 
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -20,7 +24,19 @@ public class ForeignKeyElement extends HiddenField {
 
     @Override
     public String getName() {
-        return getLabel() + getVersion();
+        return getLabel();
+    }
+
+    @Override
+    public String getFormBuilderTemplate() {
+        return "<label class='label'>" + getName() + "</label>";
+    }
+
+    @Override
+    public String renderTemplate(FormData formData, Map dataModel) {
+        final String template = "dataGridFkField.ftl";
+        String html = FormUtil.generateElementHtml(this, formData, template, dataModel);
+        return html;
     }
 
     @Override
@@ -37,7 +53,7 @@ public class ForeignKeyElement extends HiddenField {
 
     @Override
     public String getLabel() {
-        return "Data Grid Foreign Key";
+        return "Data Grid FK";
     }
 
     @Override
@@ -47,6 +63,6 @@ public class ForeignKeyElement extends HiddenField {
 
     @Override
     public String getPropertyOptions() {
-        return "";
+        return AppUtil.readPluginResource(getClass().getName(), "/properties/DataGridForeignKeyElement.json", null, true, "/messages/DataGrid");
     }
 }

@@ -73,7 +73,7 @@ public class JsonFormBinder extends FormBinder
 
                     final Optional<Element> optElement = Optional.of(id)
                             .map(s -> FormUtil.findElement(s, form, formData))
-                            .filter(e -> FormUtil.isReadonly(e, null));
+                            .filter(e -> FormUtil.isReadonly(e, formData));
 
                     optElement.ifPresent(e -> row.setProperty(id, value));
                 });

@@ -5,7 +5,7 @@
     <link href="${request.contextPath}/js/boxy/stylesheets/boxy.css" rel="stylesheet" type="text/css" />
     <link href="${request.contextPath}/plugin/${className}/css/gridPaging.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="${request.contextPath}/plugin/${className}/js/sprintf.min.js"></script>
-    <script type="text/javascript" src="${request.contextPath}/plugin/${className}/js/jquery.kecakformgrid.js"></script>
+    <script type="text/javascript" src="${request.contextPath}/plugin/${className}/js/jquery.kecakdatagrid.js"></script>
     <script type="text/javascript" src="${request.contextPath}/plugin/${className}/js/date.min.js"></script>
     <script type="text/javascript" src="${request.contextPath}/plugin/${className}/js/jquery.gridPaging.min.js"></script>
 
@@ -102,8 +102,8 @@
 <script type="text/javascript">
 
     $(document).ready(function() {
-        $("#${formGridId}").kecakformgrid({options : ${optionsJson!}});
-        $("#${formGridId}").kecakformgrid("initPopupDialog",
+        $("#${formGridId}").kecakdatagrid({options : ${optionsJson!}});
+        $("#${formGridId}").kecakdatagrid("initPopupDialog",
             {
                 contextPath:'${request.contextPath}',
                 title:'Add Entry',
@@ -115,15 +115,15 @@
     });
 
     function ${formGridId}_add(args){
-        $("#${formGridId}").kecakformgrid("addRow", args);
+        $("#${formGridId}").kecakdatagrid("addRow", args);
     }
 
     function ${formGridId}_edit(args){
-        $("#${formGridId}").kecakformgrid("editRow", args);
+        $("#${formGridId}").kecakdatagrid("editRow", args);
     }
     
     function ${formGridId}_display_form_attachment(args){
-        $("#${formGridId}").kecakformgrid("editRow", args);
+        $("#${formGridId}").kecakdatagrid("editRow", args);
     }
 </script>
 

@@ -1,6 +1,6 @@
 [
     {
-        title : 'Form Grid Binder',
+        title : 'Data Grid Binder',
         properties : [
             {
             	name : 'formDefId',

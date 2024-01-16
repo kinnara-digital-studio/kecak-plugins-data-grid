@@ -1,5 +1,5 @@
 [{
-    title : '@@datagrid.editFormGrid@@',
+    title : '@@datagrid.editDataGrid@@',
     properties : [{
     	name : 'defaultValues',
         label : '@@datagrid.defaultValues@@',

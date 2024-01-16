@@ -1,6 +1,6 @@
 [
     {
-        "title": "@@datagrid.editFormGrid@@",
+        "title": "@@datagrid.editDataGrid@@",
         "properties": [
             {
                 "name": "id",
