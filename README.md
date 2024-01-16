@@ -1,3 +1,3 @@
-# Form Grid #
+# Data Grid #
 
 Grid Element to input child data into current form
