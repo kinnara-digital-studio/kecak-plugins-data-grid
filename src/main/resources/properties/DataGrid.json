@@ -1,0 +1,401 @@
+[
+    {
+        "title": "@@datagrid.editFormGrid@@",
+        "properties": [
+            {
+                "name": "id",
+                "label": "@@datagrid.id@@",
+                "type": "textfield",
+                "required": "True",
+                "regex_validation": "^[a-zA-Z0-9_]+$",
+                "validation_message": "@@datagrid.invalidId@@"
+            },
+            {
+                "name": "label",
+                "label": "@@datagrid.label@@",
+                "type": "textfield",
+                "value": "Grid"
+            },
+            {
+                "name": "formDefId",
+                "label": "@@datagrid.formId@@",
+                "type": "selectbox",
+                "options_ajax": "[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options",
+                "required": "True"
+            },
+            {
+                "name": "options",
+                "label": "@@datagrid.columns@@",
+                "description": "@@datagrid.columns.desc@@",
+                "type": "grid",
+                "required": "True",
+                "columns": [
+                    {
+                        "key": "value",
+                        "label": "@@datagrid.value@@"
+                    },
+                    {
+                        "key": "label",
+                        "label": "@@datagrid.label@@"
+                    },
+                    {
+                        "key": "formatType",
+                        "label": "@@datagrid.formatType@@",
+                        "options": [
+                            {
+                                "value": "text",
+                                "label": "@@datagrid.formatType.text@@"
+                            },
+                            {
+                                "value": "html",
+                                "label": "@@datagrid.formatType.html@@"
+                            },
+                            {
+                                "value": "decimal",
+                                "label": "@@datagrid.formatType.decimal@@"
+                            },
+                            {
+                                "value": "locale",
+                                "label": "@@datagrid.formatType.locale@@"
+                            },
+                            {
+                                "value": "date",
+                                "label": "@@datagrid.formatType.date@@"
+                            },
+                            {
+                                "value": "file",
+                                "label": "@@datagrid.formatType.file@@"
+                            },
+                            {
+                                "value": "url",
+                                "label": "@@datagrid.formatType.url@@"
+                            },
+                            {
+                                "value": "image",
+                                "label": "@@datagrid.formatType.image@@"
+                            },
+                            {
+                                "value": "options",
+                                "label": "@@datagrid.formatType.options@@"
+                            },
+                            {
+                                "value": "cint",
+                                "label": "@@datagrid.formatType.cint@@"
+                            },
+                            {
+                                "value": "cfloat",
+                                "label": "@@datagrid.formatType.cfloat@@"
+                            },
+                            {
+                                "value": "divTag",
+                                "label": "@@datagrid.formatType.divTag@@"
+                            }
+                        ]
+                    },
+                    {
+                        "key": "format",
+                        "label": "@@datagrid.format@@"
+                    },
+                    {
+                        "key": "width",
+                        "label": "@@datagrid.width@@"
+                    },
+                    {
+                        "key": "alignment",
+                        "label": "@@datagrid.alignment@@",
+                        "value": "left",
+                        "options": [
+                            {
+                                "value": "left",
+                                "label": "@@datagrid.alignment.left@@"
+                            },
+                            {
+                                "value": "center",
+                                "label": "@@datagrid.alignment.center@@"
+                            },
+                            {
+                                "value": "right",
+                                "label": "@@datagrid.alignment.right@@"
+                            }
+                        ]
+                    },
+                    {
+                        "key": "summary",
+                        "label": "@@datagrid.summary@@",
+                        "value": "none",
+                        "options": [
+                            {
+                                "value": "none",
+                                "label": "-"
+                            },
+                            {
+                                "value": "sum",
+                                "label": "@@datagrid.summary.sum@@"
+                            },
+                            {
+                                "value": "avg",
+                                "label": "@@datagrid.summary.avg@@"
+                            },
+                            {
+                                "value": "max",
+                                "label": "@@datagrid.summary.max@@"
+                            },
+                            {
+                                "value": "min",
+                                "label": "@@datagrid.summary.min@@"
+                            },
+                            {
+                                "value": "count",
+                                "label": "@@datagrid.summary.count@@"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "title": "@@datagrid.ui@@",
+        "properties": [
+            {
+                "label": "@@datagrid.sorting@@",
+                "type": "header"
+            },
+            {
+                "name": "hideHeader",
+                "label": "@@datagrid.hideHeader@@",
+                "type": "checkbox",
+                "value": "false",
+                "options": [
+                    {
+                        "value": "true",
+                        "label": ""
+                    }
+                ]
+            },
+            {
+                "name": "enableSorting",
+                "label": "@@datagrid.enableSorting@@",
+                "type": "checkbox",
+                "value": "false",
+                "options": [
+                    {
+                        "value": "true",
+                        "label": ""
+                    }
+                ]
+            },
+            {
+                "name": "sortField",
+                "label": "@@datagrid.sortField@@",
+                "type": "textfield",
+                "description": "@@datagrid.sortField.desc@@",
+                "value": "sort"
+            },
+            {
+                "label": "@@datagrid.form@@",
+                "type": "header"
+            },
+            {
+                "name": "submit-label-normal",
+                "label": "@@datagrid.submitButtonLabel.normal@@",
+                "type": "textfield"
+            },
+            {
+                "name": "submit-label-readonly",
+                "label": "@@datagrid.submitButtonLabel.readonly@@",
+                "type": "textfield"
+            },
+            {
+                "name": "readonlyLabel",
+                "label": "@@datagrid.readonlyLabel@@",
+                "type": "checkbox",
+                "value": "False",
+                "options": [
+                    {
+                        "value": "true",
+                        "label": ""
+                    }
+                ]
+            },
+            {
+                "name": "height",
+                "label": "@@datagrid.popupWindowHeight@@",
+                "type": "textfield",
+                "value": "500"
+            },
+            {
+                "name": "width",
+                "label": "@@datagrid.popupWindowWidth@@",
+                "type": "textfield",
+                "value": "900"
+            },
+            {
+                "label": "@@datagrid.grid@@",
+                "type": "header"
+            },
+            {
+                "name": "readonly",
+                "label": "@@datagrid.readonly@@",
+                "type": "checkbox",
+                "value": "False",
+                "options": [
+                    {
+                        "value": "true",
+                        "label": ""
+                    }
+                ]
+            },
+            {
+                "name": "disabledAdd",
+                "label": "@@datagrid.disabledAdd@@",
+                "type": "checkbox",
+                "value": "false",
+                "options": [
+                    {
+                        "value": "true",
+                        "label": ""
+                    }
+                ]
+            },
+            {
+                "name": "disabledDelete",
+                "label": "@@datagrid.disabledDelete@@",
+                "type": "checkbox",
+                "value": "false",
+                "options": [
+                    {
+                        "value": "true",
+                        "label": ""
+                    }
+                ]
+            },
+            {
+                "name": "deleteMessage",
+                "label": "@@datagrid.deleteMessage@@",
+                "type": "textfield",
+                "value": "@@datagrid.deleteMessage.value@@"
+            },
+            {
+                "name": "showRowNumber",
+                "label": "@@datagrid.showRowNumber@@",
+                "type": "checkbox",
+                "value": "false",
+                "options": [
+                    {
+                        "value": "true",
+                        "label": ""
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "title": "@@datagrid.validationAndData@@",
+        "properties": [
+            {
+                "label": "@@datagrid.validation@@",
+                "type": "header"
+            },
+            {
+                "name": "validator",
+                "label": "@@datagrid.validator@@",
+                "type": "elementselect",
+                "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.form.model.FormMultiRowValidator",
+                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions"
+            },
+            {
+                "name": "uniqueKey",
+                "label": "@@datagrid.uniqueKey@@",
+                "description": "@@datagrid.uniqueKey.desc@@",
+                "type": "textfield"
+            },
+            {
+                "name": "validateMinRow",
+                "label": "@@datagrid.validateMinRow@@",
+                "type": "textfield"
+            },
+            {
+                "name": "validateMaxRow",
+                "label": "@@datagrid.validateMaxRow@@",
+                "type": "textfield"
+            },
+            {
+                "name": "errorMessage",
+                "label": "@@datagrid.errorMessage@@",
+                "type": "textfield",
+                "value": "@@datagrid.invalidNumberOfRow@@"
+            },
+            {
+                "label": "@@datagrid.dataBinder@@",
+                "type": "header"
+            },
+            {
+                "name": "loadBinder",
+                "label": "@@datagrid.loadBinder@@",
+                "type": "elementselect",
+                "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.form.model.FormLoadMultiRowElementBinder",
+                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
+                "value": "%s"
+            },
+            {
+                "name": "storeBinder",
+                "label": "@@datagrid.storeBinder@@",
+                "type": "elementselect",
+                "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.form.model.FormStoreMultiRowElementBinder",
+                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
+                "value": "%s"
+            }
+        ]
+    },
+    {
+        "title": "@@datagrid.enhancement@@",
+        "properties": [
+            {
+                "name": "defaultValues",
+                "label": "@@datagrid.defaultValues@@",
+                "description": "@@datagrid.defaultValues.desc@@",
+                "type": "grid",
+                "columns": [
+                    {
+                        "key": "fieldName",
+                        "label": "@@datagrid.fieldName@@",
+                        "required": "true"
+                    },
+                    {
+                        "key": "value",
+                        "label": "@@datagrid.value@@"
+                    }
+                ]
+            },
+            {
+                "name": "javascriptEnhancementOnFormLoad",
+                "label": "@@datagrid.javascriptEnhancementOnFormLoad@@",
+                "description": "@@datagrid.javascriptEnhancementOnFormLoad.description@@",
+                "type": "codeeditor",
+                "mode": "javascript",
+                "rows": "7",
+                "cols": "65",
+                "value": "function($grid, $button) { /*code here*/ }"
+            },
+            {
+                "name": "enhancementStoreBinder",
+                "label": "@@datagrid.enhancementStoreBinder@@",
+                "description": "@@datagrid.enhancementStoreBinder.description@@",
+                "type": "elementselect",
+                "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.form.model.FormStoreElementBinder",
+                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions"
+            }
+        ]
+    },
+    {
+        "title": "@@datagrid.notes@@",
+        "properties": [
+            {
+                "name": "notes",
+                "label": "@@datagrid.notes@@",
+                "type": "textarea"
+            }
+        ]
+    }
+]

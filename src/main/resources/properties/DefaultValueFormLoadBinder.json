@@ -1,0 +1,25 @@
+[{
+    title : '@@datagrid.editFormGrid@@',
+    properties : [{
+    	name : 'defaultValues',
+        label : '@@datagrid.defaultValues@@',
+        description : '@@datagrid.defaultValues.desc@@',
+        type : 'grid',
+        columns : [{
+        	key : 'fieldName',
+        	label : '@@datagrid.fieldName@@',
+            required : 'true'
+        }, {
+        	key : 'value',
+        	label : '@@datagrid.value@@'
+        }]
+    }, {
+      name : 'forceOverwrite',
+      label : '@@datagrid.forceOverwrite@@',
+      type : 'checkbox',
+      value : 'false',
+      options : [{
+        value : 'true'
+      }]
+    }]
+}]
