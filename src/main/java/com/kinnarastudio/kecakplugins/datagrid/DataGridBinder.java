@@ -16,6 +16,7 @@ import org.joget.plugin.base.PluginWebSupport;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.kecak.apps.exception.ApiException;
 import org.springframework.beans.BeansException;
 
 import javax.annotation.Nullable;
@@ -39,14 +40,14 @@ public class DataGridBinder
     private final Map<String, Form> formCache = new HashMap<>();
 
     private String tableName = null;
-    
+
     private final static String LABEL = "Data Grid Binder";
 
     @Override
     public String getName() {
         return getClass().getName();
     }
-    
+
     @Override
     public String getVersion() {
         PluginManager pluginManager = (PluginManager) AppUtil.getApplicationContext().getBean("pluginManager");
@@ -54,29 +55,29 @@ public class DataGridBinder
         String buildNumber = resourceBundle.getString("buildNumber");
         return buildNumber;
     }
-    
+
     @Override
     public String getDescription() {
         return getClass().getPackage().getImplementationTitle();
     }
-    
+
     @Override
     public String getClassName() {
         return this.getClass().getName();
     }
-    
+
     @Override
     public String getLabel() {
         return LABEL;
     }
-    
+
     @Override
     public String getPropertyOptions() {
-        Object[] arguments = { getClassName() };
+        Object[] arguments = {getClassName()};
         return AppUtil.readPluginResource(getClass().getName(),
                 "/properties/DataGridBinder.json", arguments, true);
     }
-    
+
     @Override
     public FormRowSet load(Element element, String primaryKey, FormData formData) {
         AppDefinition appDef = AppUtil.getCurrentAppDefinition();
@@ -90,14 +91,14 @@ public class DataGridBinder
 //                Object[] paramsArray = new Object[]{primaryKey};
                 List<Object> paramsArray = new ArrayList<>();
                 paramsArray.add(primaryKey);
-                
+
                 if (getProperty("extraCondition") != null) {
                     for (Object o : (Object[]) getProperty("extraCondition")) {
                         Map<String, String> row = (Map<String, String>) o;
                         if ((row.get("key") != null || !row.get("key").isEmpty())) {
                             condition.append(" AND ").append(this.getFormPropertyName(form, row.get("key"))).append(" = ? ");
                         }
-                        
+
                         if ((row.get("value") != null || !row.get("value").isEmpty())) {
                             paramsArray.add(AppUtil.processHashVariable(row.get("value").trim(), null, null, null, appDef));
                         }
@@ -111,13 +112,13 @@ public class DataGridBinder
         rows.setMultiRow(true);
         return rows;
     }
-    
+
     @Override
     public FormRowSet store(Element element, FormRowSet rows, FormData formData) {
         if (rows == null) {
             return null;
         }
-        
+
         FormDataDao formDataDao = (FormDataDao) FormUtil.getApplicationContext().getBean("formDataDao");
         AppService appService = (AppService) FormUtil.getApplicationContext().getBean("appService");
         Form form = this.getSelectedForm();
@@ -138,11 +139,11 @@ public class DataGridBinder
                         formDataDao.delete(form, ids.toArray(new String[0]));
                     }
                 }
-                
+
                 for (FormRow row : rows) {
                     row.put(this.getPropertyString("foreignKey"), primaryKeyValue);
                 }
-                
+
                 rows = appService.storeFormData(form, rows, null);
             } catch (Exception e) {
                 LogUtil.error(this.getClass().getName(), e, e.getMessage());
@@ -150,7 +151,7 @@ public class DataGridBinder
         }
         return rows;
     }
-    
+
     protected Form getSelectedForm() {
         Form form = null;
         FormDefinitionDao formDefinitionDao = (FormDefinitionDao) AppUtil.getApplicationContext().getBean("formDefinitionDao");
@@ -166,7 +167,7 @@ public class DataGridBinder
         }
         return form;
     }
-    
+
     protected String getFormPropertyName(Form form, String propertyName) {
         if (propertyName != null && !propertyName.isEmpty() && (((FormDataDao) AppUtil.getApplicationContext().getBean("formDataDao")).getFormDefinitionColumnNames(form.getPropertyString("tableName"))).contains(propertyName) && !"id".equals(propertyName)) {
             propertyName = "customProperties." + propertyName;
@@ -180,7 +181,7 @@ public class DataGridBinder
             String formDefId = getRequiredParameter(request, "formDefId");
             Form form = Optional.of(formDefId)
                     .map(this::getForm)
-                    .orElseThrow(() -> new RestApiException(HttpServletResponse.SC_BAD_REQUEST, "Unknown form [" + formDefId + "]"));
+                    .orElseThrow(() -> new ApiException(HttpServletResponse.SC_BAD_REQUEST, "Unknown form [" + formDefId + "]"));
 
             JSONArray jsonArray = new JSONArray();
             getChildren(form, e -> e instanceof HiddenField, element -> {
@@ -201,24 +202,24 @@ public class DataGridBinder
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write(jsonArray.toString());
 
-        } catch (RestApiException e) {
+        } catch (ApiException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
             response.sendError(e.getErrorCode(), e.getMessage());
         }
     }
 
-    private String getRequiredParameter(HttpServletRequest request, String parameterName) throws RestApiException {
+    private String getRequiredParameter(HttpServletRequest request, String parameterName) throws ApiException {
         return Optional.of(parameterName)
                 .map(request::getParameter)
-                .orElseThrow(() -> new RestApiException(HttpServletResponse.SC_BAD_REQUEST, "Required parameter ["+parameterName+" is not supplied]"));
+                .orElseThrow(() -> new ApiException(HttpServletResponse.SC_BAD_REQUEST, "Required parameter [" + parameterName + " is not supplied]"));
     }
 
     private void getChildren(Element parent, Predicate<Element> filter, Consumer<Element> consumeChild) {
-        if(parent == null)
+        if (parent == null)
             return;
 
-        for(Element child : parent.getChildren()) {
-            if(filter.test(child)) {
+        for (Element child : parent.getChildren()) {
+            if (filter.test(child)) {
                 consumeChild.accept(child);
             }
 
@@ -233,7 +234,7 @@ public class DataGridBinder
                     AppDefinition appDefinition = AppUtil.getCurrentAppDefinition();
                     AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
                     Form form = appService.viewDataForm(appDefinition.getAppId(), appDefinition.getVersion().toString(), formDefId, null, null, null, null, null, null);
-                    if(form != null) {
+                    if (form != null) {
                         formCache.put(formDefId, form);
                     }
                     return form;
@@ -248,7 +249,7 @@ public class DataGridBinder
     @Override
     @Nullable
     public String getTableName() {
-        if(tableName == null) {
+        if (tableName == null) {
             AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
             AppDefinition appDef = AppUtil.getCurrentAppDefinition();
             String formDefId = getFormId();
