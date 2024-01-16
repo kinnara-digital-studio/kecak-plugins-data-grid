@@ -8,9 +8,9 @@
     <name>kecak-plugins-data-grid</name>
     <url>http://www.kecak.org</url>
     <scm>
-        <connection>scm:git:ssh://git@gitlab.com:kinnarastudio/kecak-plugins-data-grid.git</connection>
-        <developerConnection>scm:git:ssh://git@gitlab.com:kinnarastudio/kecak-plugins-data-grid.git</developerConnection>
-        <url>ssh://git@gitlab.com:kinnarastudio/kecak-plugins-data-grid.git</url>
+        <connection>scm:git:ssh://git@github.com:kinnara-digital-studio/kecak-plugins-data-grid.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:kinnara-digital-studio/kecak-plugins-data-grid.git</developerConnection>
+        <url>ssh://git@github.com:kinnara-digital-studio/kecak-plugins-data-grid.git</url>
         <tag>HEAD</tag>
     </scm>
     <build>
