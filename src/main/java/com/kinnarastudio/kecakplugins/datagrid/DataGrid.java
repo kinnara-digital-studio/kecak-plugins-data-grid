@@ -114,7 +114,8 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         PluginManager pluginManager = (PluginManager) AppUtil.getApplicationContext().getBean("pluginManager");
         ResourceBundle resourceBundle = pluginManager.getPluginMessageBundle(getClassName(), "/messages/BuildNumber");
         String buildNumber = resourceBundle.getString("buildNumber");
-        return buildNumber;    }
+        return buildNumber;
+    }
 
     @Override
     public String renderTemplate(FormData formData, @Nonnull Map dataModel) {

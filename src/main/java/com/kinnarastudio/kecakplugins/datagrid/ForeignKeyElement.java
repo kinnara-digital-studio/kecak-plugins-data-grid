@@ -4,7 +4,6 @@ import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.lib.HiddenField;
 import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.service.FormUtil;
-import org.joget.commons.util.ResourceBundleUtil;
 import org.joget.plugin.base.PluginManager;
 
 import java.util.Map;
@@ -29,6 +28,7 @@ public class ForeignKeyElement extends HiddenField {
 
     @Override
     public String getFormBuilderTemplate() {
+
         return "<label class='label'>" + getName() + "</label>";
     }
 
