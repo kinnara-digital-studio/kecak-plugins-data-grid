@@ -1,10 +1,11 @@
-package com.kinnarastudio.kecakplugins.datagrid;
+package com.kinnarastudio.kecakplugins.datagrid.form;
 
 import com.kinnarastudio.commons.Declutter;
 import com.kinnarastudio.commons.Try;
 import com.kinnarastudio.commons.jsonstream.JSONCollectors;
 import com.kinnarastudio.commons.jsonstream.JSONObjectEntry;
 import com.kinnarastudio.commons.jsonstream.JSONStream;
+import com.kinnarastudio.kecakplugins.datagrid.util.Utilities;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.joget.apps.app.dao.FormDefinitionDao;
@@ -106,7 +107,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     @Override
     public String getPropertyOptions() {
         Object[] arguments = new Object[]{DataGridBinder.class.getName(), DataGridBinder.class.getName()};
-        return AppUtil.readPluginResource(this.getClass().getName(), "/properties/DataGrid.json", arguments, true, "messages/DataGrid").replaceAll("\"", "'");
+        return AppUtil.readPluginResource(this.getClass().getName(), "/properties/form/DataGrid.json", arguments, true, "messages/DataGrid").replaceAll("\"", "'");
     }
 
     @Override
@@ -1591,11 +1592,14 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                 .flatMap(j -> JSONStream.of(j, Try.onBiFunction(JSONArray::getJSONObject)))
                 .map(Try.onFunction(j -> reconstructRowObject(attachmentForm, formData, j)))
                 .map(JSONObject::toString)
+                .map(s -> AppUtil.processHashVariable(s, formData.getAssignment(), null, null))
                 .toArray(String[]::new);
     }
 
     @Override
-    public String[] handleJsonDataRequest(@Nonnull Object value, @Nonnull Element element, @Nonnull FormData formData) throws JSONException {
+    public String[] handleJsonDataRequest(@Nullable Object value, @Nonnull Element element, @Nonnull FormData formData) throws JSONException {
+        if(value == null) return new String[0];
+
         final Form attachmentForm = ((DataGrid) element).getAttachmentForm();
 
         final JSONArray json;
@@ -1608,6 +1612,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         return JSONStream.of(json, Try.onBiFunction(JSONArray::getJSONObject))
                 .map(Try.onFunction(j -> reconstructRowObject(attachmentForm, formData, j)))
                 .map(JSONObject::toString)
+                .map(s -> AppUtil.processHashVariable(s, formData.getAssignment(), null, null))
                 .toArray(String[]::new);
     }
 

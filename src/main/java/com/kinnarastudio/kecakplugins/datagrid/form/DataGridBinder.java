@@ -1,4 +1,4 @@
-package com.kinnarastudio.kecakplugins.datagrid;
+package com.kinnarastudio.kecakplugins.datagrid.form;
 
 import org.joget.apps.app.dao.FormDefinitionDao;
 import org.joget.apps.app.model.AppDefinition;
@@ -75,7 +75,7 @@ public class DataGridBinder
     public String getPropertyOptions() {
         Object[] arguments = {getClassName()};
         return AppUtil.readPluginResource(getClass().getName(),
-                "/properties/DataGridBinder.json", arguments, true);
+                "/properties/form/DataGridBinder.json", arguments, true);
     }
 
     @Override

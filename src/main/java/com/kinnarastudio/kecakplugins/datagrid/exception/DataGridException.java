@@ -1,4 +1,4 @@
-package com.kinnarastudio.kecakplugins.datagrid;
+package com.kinnarastudio.kecakplugins.datagrid.exception;
 
 public class DataGridException extends Exception {
     public DataGridException(String message) {

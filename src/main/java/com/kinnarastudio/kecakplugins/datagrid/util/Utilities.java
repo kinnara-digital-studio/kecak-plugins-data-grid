@@ -1,5 +1,6 @@
-package com.kinnarastudio.kecakplugins.datagrid;
+package com.kinnarastudio.kecakplugins.datagrid.util;
 
+import com.kinnarastudio.kecakplugins.datagrid.form.DataGrid;
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.*;
 import org.joget.apps.form.service.FormUtil;

@@ -1,4 +1,4 @@
-package com.kinnarastudio.kecakplugins.datagrid;
+package com.kinnarastudio.kecakplugins.datagrid.form;
 
 import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.lib.HiddenField;
@@ -63,6 +63,6 @@ public class ForeignKeyElement extends HiddenField {
 
     @Override
     public String getPropertyOptions() {
-        return AppUtil.readPluginResource(getClass().getName(), "/properties/DataGridForeignKeyElement.json", null, true, "/messages/DataGrid");
+        return AppUtil.readPluginResource(getClass().getName(), "/properties/form/DataGridForeignKeyElement.json", null, true, "/messages/DataGrid");
     }
 }
