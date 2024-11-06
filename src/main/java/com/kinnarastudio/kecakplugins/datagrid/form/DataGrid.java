@@ -1757,7 +1757,16 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
      * @return
      * @throws JSONException
      */
-    protected JSONObject reconstructRowObject(Form attachmentForm, FormData formData, JSONObject source) throws JSONException {
+    protected JSONObject reconstructRowObject(Form attachmentForm, FormData formData, JSONObject json) throws JSONException {
+        final JSONObject source = FormDataUtil.elementStream(attachmentForm, formData)
+                .collect(JSONCollectors.toJSONObject(e -> e.getPropertyString("id"), Try.onFunction(e -> {
+                    final String elementId = e.getPropertyString("id");
+                    final Object value = json.opt(elementId);
+                    return Arrays.stream(e.handleJsonDataRequest(value, e, formData))
+                            .findFirst()
+                            .orElse("");
+                })));
+
         JSONObject jsonTempFilePath = constructTempFilePath(source, attachmentForm, formData);
         JSONObject result = reconstructJsonResultWithAttributeTempFilePath(source, attachmentForm, formData);
 
