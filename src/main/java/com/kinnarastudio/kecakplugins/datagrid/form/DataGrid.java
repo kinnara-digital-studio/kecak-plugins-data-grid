@@ -374,14 +374,15 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
             Map<String, String>[] columnProperties = getColumnProperties();
             FormService formService = (FormService) AppUtil.getApplicationContext().getBean("formService");
             int i = 0;
+            final Map<String, Form> formCache = new HashMap<>();
             for (Map<String, String> optMap : columnProperties) {
                 Object value = getField(optMap);
                 if (value == null) continue;
 
                 // inject attachment form
-                String format = optMap.get("format").toString();
+                String format = optMap.get("format");
                 if (optMap.get("formatType").equals("form") && !format.isEmpty()) {
-                    Form formAttachment = generateForm(format, null);
+                    Form formAttachment = generateForm(format, formCache);
                     FormUtil.setReadOnlyProperty(formAttachment);
                     optMap.put("jsonform_formattachment", formService.generateElementJson(formAttachment));
                 }
@@ -419,8 +420,8 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                 if (formData.getRequestParameter(DataJsonControllerHandler.PARAMETER_DATA_JSON_CONTROLLER) != null) {
                     rowSet = Optional.of(formData)
                             .map(fd -> fd.getRequestParameterValues(param))
-                            .map(Arrays::stream)
-                            .orElseGet(Stream::empty)
+                            .stream()
+                            .flatMap(Arrays::stream)
                             .map(Try.onFunction(JSONObject::new))
                             .map(this::convertJsonToFormRow)
                             .collect(Collectors.toCollection(FormRowSet::new));
@@ -432,8 +433,8 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                     rowSet = Optional.of(formData)
                             .map(FormData::getRequestParams)
                             .map(Map::entrySet)
-                            .map(Collection::stream)
-                            .orElseGet(Stream::empty)
+                            .stream()
+                            .flatMap(Collection::stream)
                             .filter(e -> e.getKey().equals(param) || e.getKey().contains(param + "_jsonrow"))
                             .map(Entry::getValue)
                             .filter(Objects::nonNull)
@@ -1014,7 +1015,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                         BigDecimal value = getValue(row, fieldId);
                         sumValue = sumValue.add(value);
                     }
-                    summary.put(fieldId, rows.size() > 0 ?
+                    summary.put(fieldId, !rows.isEmpty() ?
                             sumValue.divide(new BigDecimal(rows.size())).toString() : "0");
                 } else if ("count".equals(operation)) {
                     summary.put(fieldId, String.format("%d", rows.size()));
@@ -1445,12 +1446,13 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         return DigestUtils.sha256Hex(json == null || json.toString() == null ? "" : json.toString());
     }
 
+    @Nonnull
     public Map<String, String>[] getColumnProperties() {
         return Optional.of("options")
                 .map(this::getProperty)
                 .map(o -> (FormRowSet) o)
-                .map(Collection::stream)
-                .orElseGet(Stream::empty)
+                .stream()
+                .flatMap(Collection::stream)
                 .map(r -> r.keySet().stream()
                         .map(String::valueOf)
                         .collect(Collectors.toMap(Objects::toString, r::getProperty)))
@@ -1474,7 +1476,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         return map.get("label");
     }
 
-    private String getPropertyFormDefId() {
+    protected String getPropertyFormDefId() {
         return getPropertyString("formDefId");
     }
 
@@ -1568,9 +1570,9 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     }
 
     public Map<String, String> getColumnProperty(String columnName) {
-        return Optional.ofNullable(getColumnProperties())
-                .map(Arrays::stream)
-                .orElseGet(Stream::empty)
+        return Optional.of(getColumnProperties())
+                .stream()
+                .flatMap(Arrays::stream)
                 .filter(m -> columnName.equalsIgnoreCase(m.getOrDefault("value", "")))
                 .findFirst()
                 .orElseGet(HashMap::new);
@@ -1617,13 +1619,13 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     }
 
     @Override
-    public Object handleElementValueResponse(Element element, FormData formData) {
+    public Object handleElementValueResponse(@Nonnull Element element, FormData formData) {
         final boolean asOptions = formData.getRequestParameter(DataJsonControllerHandler.PARAMETER_AS_OPTIONS) != null;
 
         final FormRowSet rowSet = getRows(formData);
         return Optional.ofNullable(rowSet)
-                .map(Collection::stream)
-                .orElseGet(Stream::empty)
+                .stream()
+                .flatMap(Collection::stream)
                 .map(r -> collectGridElement((DataGrid) element, r, asOptions))
                 .collect(JSONCollectors.toJSONArray());
     }
@@ -1643,54 +1645,95 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         final AppDefinition appDefinition = AppUtil.getCurrentAppDefinition();
         final Map<String, String>[] columnProperties = dataGridElement.getColumnProperties();
 
-        if (columnProperties == null) {
-            return collectElement(dataGridElement, row);
-        } else {
-            final JSONObject jsonObject = Optional.ofNullable(columnProperties)
-                    .map(Arrays::stream)
-                    .orElseGet(Stream::empty)
-                    .collect(JSONCollectors.toJSONObject(dataGridElement::getField, props -> {
-                        final String primaryKey = Optional.of(row).map(FormRow::getId).orElse("");
-                        final String columnName = Optional.of(props)
-                                .map(dataGridElement::getField)
-                                .orElse("");
-                        final String columnType = Optional.of(props)
-                                .map(m -> m.getOrDefault("formatType", ""))
-                                .orElse("");
+        final Form form = dataGridElement.generateForm(dataGridElement.getPropertyFormDefId());
+        final FormData formData = new FormData() {{
+            Optional.of(row).map(FormRow::getId).ifPresent(this::setPrimaryKeyValue);
+        }};
 
-                        return Optional.of(columnName)
-                                .filter(s -> !s.isEmpty())
-                                .map(row::getProperty)
-                                .map(s -> {
-                                    if (asOptions && "options".equals(columnType)) {
-                                        return Optional.of(";")
-                                                .map(s::split)
-                                                .map(Arrays::stream)
-                                                .orElseGet(Stream::empty)
-                                                .filter(Objects::nonNull)
-                                                .map(value -> {
-                                                    String formattedValue = dataGridElement.formatColumn(columnName, props, primaryKey, value, appDefinition.getAppId(), appDefinition.getVersion(), "");
-                                                    try {
-                                                        JSONObject json = new JSONObject();
-                                                        json.put(FormUtil.PROPERTY_VALUE, value);
-                                                        json.put(FormUtil.PROPERTY_LABEL, formattedValue);
-                                                        return json;
-                                                    } catch (JSONException e) {
-                                                        return formattedValue;
-                                                    }
-                                                })
-                                                .collect(JSONCollectors.toJSONArray());
-                                    } else {
-                                        return dataGridElement.formatColumn(columnName, props, primaryKey, s, appDefinition.getAppId(), appDefinition.getVersion(), "");
-                                    }
-                                })
-                                .orElse(null);
-                    }));
+        final String primaryKey = Optional.of(row).map(FormRow::getId).orElse("");
 
-            FormDataUtil.collectRowMetaData(row, jsonObject);
+        final JSONObject jsonObject = FormDataUtil.elementStream(form, formData)
+                .filter(e -> !(e instanceof FormContainer))
+                .collect(JSONCollectors.toJSONObject(e -> e.getPropertyString(FormUtil.PROPERTY_ID), Try.onFunction(e -> {
+                    final String columnName = e.getPropertyString(FormUtil.PROPERTY_ID);
+                    final Map<String, String> props = Optional.of(columnProperties)
+                            .stream()
+                            .flatMap(Arrays::stream)
+                            .filter(m -> columnName.equals(dataGridElement.getField(m)))
+                            .findAny()
+                            .orElseThrow(Exception::new);
 
-            return jsonObject;
-        }
+                    final String columnType = Optional.of(props)
+                            .map(m -> m.getOrDefault("formatType", ""))
+                            .orElse("");
+
+                    return Optional.of(columnName)
+                            .filter(s -> !s.isEmpty())
+                            .map(row::getProperty)
+                            .map(s -> {
+                                if (asOptions && "options".equals(columnType)) {
+                                    return Optional.of(";")
+                                            .map(s::split)
+                                            .stream()
+                                            .flatMap(Arrays::stream)
+                                            .filter(Objects::nonNull)
+                                            .map(Try.onFunction(value -> {
+                                                String formattedValue = dataGridElement.formatColumn(columnName, props, primaryKey, value, appDefinition.getAppId(), appDefinition.getVersion(), "");
+                                                JSONObject json = new JSONObject();
+                                                json.put(FormUtil.PROPERTY_VALUE, value);
+                                                json.put(FormUtil.PROPERTY_LABEL, formattedValue);
+                                                return json;
+                                            }, (String failover, JSONException ignored) -> failover))
+                                            .collect(JSONCollectors.toJSONArray());
+                                } else {
+                                    return dataGridElement.formatColumn(columnName, props, primaryKey, s, appDefinition.getAppId(), appDefinition.getVersion(), "");
+                                }
+                            })
+                            .orElseThrow(Exception::new);
+                }, (e, ignoredEx) -> {
+                    final String elementId = e.getPropertyString(FormUtil.PROPERTY_ID);
+                    return row.getProperty(elementId);
+                })));
+
+//        final JSONObject jsonObject = Optional.of(columnProperties)
+//                .stream()
+//                .flatMap(Arrays::stream)
+//                .collect(JSONCollectors.toJSONObject(dataGridElement::getField, props -> {
+//                    final String columnName = Optional.of(props)
+//                            .map(dataGridElement::getField)
+//                            .orElse("");
+//                    final String columnType = Optional.of(props)
+//                            .map(m -> m.getOrDefault("formatType", ""))
+//                            .orElse("");
+//
+//                    return Optional.of(columnName)
+//                            .filter(s -> !s.isEmpty())
+//                            .map(row::getProperty)
+//                            .map(s -> {
+//                                if (asOptions && "options".equals(columnType)) {
+//                                    return Optional.of(";")
+//                                            .map(s::split)
+//                                            .stream()
+//                                            .flatMap(Arrays::stream)
+//                                            .filter(Objects::nonNull)
+//                                            .map(Try.onFunction(value -> {
+//                                                String formattedValue = dataGridElement.formatColumn(columnName, props, primaryKey, value, appDefinition.getAppId(), appDefinition.getVersion(), "");
+//                                                JSONObject json = new JSONObject();
+//                                                json.put(FormUtil.PROPERTY_VALUE, value);
+//                                                json.put(FormUtil.PROPERTY_LABEL, formattedValue);
+//                                                return json;
+//                                            }, (String failover, JSONException ignored) -> failover))
+//                                            .collect(JSONCollectors.toJSONArray());
+//                                } else {
+//                                    return dataGridElement.formatColumn(columnName, props, primaryKey, s, appDefinition.getAppId(), appDefinition.getVersion(), "");
+//                                }
+//                            })
+//                            .orElse(null);
+//                }));
+
+        FormDataUtil.collectRowMetaData(row, jsonObject);
+
+        return jsonObject;
     }
 
 
@@ -1753,7 +1796,6 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     /**
      * @param attachmentForm
      * @param formData
-     * @param source
      * @return
      * @throws JSONException
      */
