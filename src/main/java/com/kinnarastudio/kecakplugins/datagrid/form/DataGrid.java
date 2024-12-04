@@ -688,7 +688,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     }
 
     protected Form generateForm(String formDefId) {
-        return generateForm(formDefId, formCache);
+        return generateForm(formDefId, null);
     }
 
     /**
@@ -714,8 +714,6 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     protected Form generateForm(String formDefId, String processId, Map<String, Form> formCache) {
         if (formDefId == null || formDefId.isEmpty())
             return null;
-
-        formCache = null;
 
         // check in cache
         if (formCache != null && formCache.containsKey(formDefId))
