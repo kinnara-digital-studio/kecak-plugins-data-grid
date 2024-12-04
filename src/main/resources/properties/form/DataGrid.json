@@ -335,16 +335,14 @@
                 "label": "@@datagrid.loadBinder@@",
                 "type": "elementselect",
                 "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.form.model.FormLoadMultiRowElementBinder",
-                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
-                "value": "%s"
+                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions"
             },
             {
                 "name": "storeBinder",
                 "label": "@@datagrid.storeBinder@@",
                 "type": "elementselect",
                 "options_ajax": "[CONTEXT_PATH]/web/property/json/getElements?classname=org.joget.apps.form.model.FormStoreMultiRowElementBinder",
-                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions",
-                "value": "%s"
+                "url": "[CONTEXT_PATH]/web/property/json[APP_PATH]/getPropertyOptions"
             }
         ]
     },

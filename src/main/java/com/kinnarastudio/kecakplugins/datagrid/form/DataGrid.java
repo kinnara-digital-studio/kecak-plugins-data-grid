@@ -106,7 +106,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
 
     @Override
     public String getPropertyOptions() {
-        Object[] arguments = new Object[]{DataGridBinder.class.getName(), DataGridBinder.class.getName()};
+        Object[] arguments = new Object[]{};
         return AppUtil.readPluginResource(this.getClass().getName(), "/properties/form/DataGrid.json", arguments, true, "messages/DataGrid").replaceAll("\"", "'");
     }
 
@@ -714,6 +714,8 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     protected Form generateForm(String formDefId, String processId, Map<String, Form> formCache) {
         if (formDefId == null || formDefId.isEmpty())
             return null;
+
+        formCache = null;
 
         // check in cache
         if (formCache != null && formCache.containsKey(formDefId))
