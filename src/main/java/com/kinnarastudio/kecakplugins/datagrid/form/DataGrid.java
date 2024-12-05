@@ -44,8 +44,8 @@ import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
@@ -53,17 +53,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DataGrid extends Element implements FormBuilderPaletteElement, PluginWebSupport, Declutter {
-    protected Map<FormData, FormRowSet> cachedRowSet = new HashMap<>();
-    protected Map<String, Map<String, String>> headerMap;
-
-    // Map<Form.Field, Map<Value, Label>>
-    protected Map<String, Map<String, String>> optionsMap;
-
-    private final Map<String, Form> formCache = new HashMap<>();
-
     public final static String PROPS_ENHANCEMENT_STORE_BINDER = "enhancementStoreBinder";
     private final static String LABEL = "Data Grid";
     private final static String CATEGORY = "Kecak";
+    private final Map<String, Form> formCache = new HashMap<>();
+    protected Map<FormData, FormRowSet> cachedRowSet = new HashMap<>();
+    protected Map<String, Map<String, String>> headerMap;
+    // Map<Form.Field, Map<Value, Label>>
+    protected Map<String, Map<String, String>> optionsMap;
 
     @Override
     public String getClassName() {
@@ -192,6 +189,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         final AppDefinition appDefinition = AppUtil.getCurrentAppDefinition();
         return formatColumn(name, getColumnProperty(name), recordId, value, appDefinition.getAppId(), appDefinition.getVersion(), "");
     }
+
     /**
      * This method will be executed from template file
      *
@@ -293,7 +291,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                                 return null;
                             }
 
-                            final String formDefId =  ifEmptyThen(format, getPropertyFormDefId());
+                            final String formDefId = ifEmptyThen(format, getPropertyFormDefId());
                             final String encodedFileName = URLEncoder.encode(str, "UTF8").replaceAll("\\+", "%20");
                             final String filePath = contextPath + "/web/client/app/" + appId + "/" + appVersion + "/form/download/" + formDefId + "/" + recordId + "/" + encodedFileName;
 
@@ -312,7 +310,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
             }
 
             // Format type : URL
-            else if(formatType.equals("url")) {
+            else if (formatType.equals("url")) {
                 return Arrays.stream(explodes(value))
                         .map(val -> {
                             final String formId = getPropertyFormDefId();
@@ -888,13 +886,13 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
             final String fieldId;
 
             // URL
-            if("url".equalsIgnoreCase(formatType)) {
+            if ("url".equalsIgnoreCase(formatType)) {
                 formDefId = getPropertyFormDefId();
                 fieldId = header.get("value");
             }
 
             // OPTIONS
-            else if("options".equals(formatType)) {
+            else if ("options".equals(formatType)) {
                 final Entry<String, String> formAndField = getFormAndField(header, format);
                 formDefId = formAndField.getKey();
                 fieldId = formAndField.getValue();
@@ -962,7 +960,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         try {
             jsonProperties.put("readonly", FormUtil.isReadonly(this, formData));
             jsonProperties.put("disabledAdd", "true".equalsIgnoreCase(getPropertyString("disabledAdd")));
-        } catch (JSONException e){
+        } catch (JSONException e) {
             LogUtil.error(getClassName(), e, e.getMessage());
         }
         return jsonProperties;
@@ -1600,7 +1598,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
 
     @Override
     public String[] handleJsonDataRequest(@Nullable Object value, @Nonnull Element element, @Nonnull FormData formData) throws JSONException {
-        if(value == null) return new String[0];
+        if (value == null) return new String[0];
 
         final Form attachmentForm = ((DataGrid) element).getAttachmentForm();
 
@@ -1622,12 +1620,31 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     public Object handleElementValueResponse(@Nonnull Element element, FormData formData) {
         final boolean asOptions = formData.getRequestParameter(DataJsonControllerHandler.PARAMETER_AS_OPTIONS) != null;
 
-        final FormRowSet rowSet = getRows(formData);
-        return Optional.ofNullable(rowSet)
-                .stream()
-                .flatMap(Collection::stream)
-                .map(r -> collectGridElement((DataGrid) element, r, asOptions))
-                .collect(JSONCollectors.toJSONArray());
+        if (element.getStoreBinder() == null) {
+            final FormStoreBinder storeBinder = FormUtil.findStoreBinder(element);
+            final String elementId = element.getPropertyString(FormUtil.PROPERTY_ID);
+            return Optional.ofNullable(storeBinder)
+                    .map(formData::getStoreBinderData)
+                    .stream()
+                    .flatMap(Collection::stream)
+                    .findFirst()
+                    .map(r -> r.getProperty(elementId))
+                    .map(Try.onFunction(JSONArray::new))
+                    .stream()
+                    .flatMap(j -> JSONStream.of(j, Try.onBiFunction(JSONArray::getJSONObject)))
+                    .map(j -> JSONStream.of(j, Try.onBiFunction(JSONObject::getString))
+                            .collect(Collectors.toMap(JSONObjectEntry::getKey, JSONObjectEntry::getValue, (replace, accept) -> accept, FormRow::new)))
+                    .map(r -> collectGridElement((DataGrid) element, r, asOptions))
+                    .collect(JSONCollectors.toJSONArray());
+        } else {
+            return Optional.ofNullable(element.getStoreBinder())
+                    .map(formData::getStoreBinderData)
+                    .stream()
+                    .flatMap(Collection::stream)
+                    .map(r -> collectGridElement((DataGrid) element, r, asOptions))
+                    .collect(JSONCollectors.toJSONArray());
+        }
+
     }
 
     protected JSONObject collectElement(@Nonnull final Element element, @Nonnull final FormRow row) {
@@ -1847,7 +1864,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     }
 
     protected Entry<String, String> getFormAndField(Map<String, String> header, String format) {
-        final String field = header.getOrDefault("value",  "");
+        final String field = header.getOrDefault("value", "");
         final String formDefId;
         final String fieldId;
 
@@ -1864,5 +1881,13 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         }
 
         return new SimpleImmutableEntry<>(formDefId, fieldId);
+    }
+
+    protected final <T> T coalesce(T... values) {
+        if (values == null) return null;
+
+        for (T value : values) if (value != null) return value;
+
+        return null;
     }
 }
