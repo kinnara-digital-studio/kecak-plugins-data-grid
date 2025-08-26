@@ -1638,7 +1638,8 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                     .collect(JSONCollectors.toJSONArray());
         } else {
             // data is loaded from load binder
-            return Optional.ofNullable(formData.getLoadBinderData(element))
+            return Optional.of(element)
+                    .map(formData::getLoadBinderData)
                     .stream()
                     .flatMap(Collection::stream)
                     .map(r -> collectGridElement((DataGrid) element, r, asOptions))
