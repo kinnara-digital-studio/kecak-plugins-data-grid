@@ -133,24 +133,22 @@ public class JsonFormBinder extends FormBinder
                         .collect(Collectors.toMap(JSONObjectEntry::getKey, JSONObjectEntry::getValue, (oldValue, newValue) -> newValue, FormRow::new)))
                 .ifPresent(row -> {
                     if (row.containsKey(FormUtil.PROPERTY_TEMP_FILE_PATH)) {
-                        try {
-                            final JSONObject jsonTempFilePathMap = new JSONObject(row.getProperty(FormUtil.PROPERTY_TEMP_FILE_PATH));
-                            JSONStream.of(jsonTempFilePathMap, Try.onBiFunction(JSONObject::getJSONArray))
-                                    .forEach(e -> {
-                                        final Set<String> tempFilePathSet = JSONStream.of(e.getValue(), Try.onBiFunction(JSONArray::optString)).collect(Collectors.toSet());
-                                        final Set<String> filenameSet = Optional.of(e.getKey())
-                                                .map(row::getProperty)
-                                                .map(s -> s.split(";"))
-                                                .map(Arrays::stream)
-                                                .orElseGet(Stream::empty)
-                                                .filter(s -> !anyMatch(s, tempFilePathSet))
-                                                .collect(Collectors.toSet());
+                        Optional.ofNullable(row.getProperty(FormUtil.PROPERTY_TEMP_FILE_PATH))
+                                .map(Try.onFunction(JSONObject::new, (JSONException ignored) -> null))
+                                .stream()
+                                .flatMap(j -> JSONStream.of(j, Try.onBiFunction(JSONObject::getJSONArray)))
+                                .forEach(e -> {
+                                    final Set<String> tempFilePathSet = JSONStream.of(e.getValue(), Try.onBiFunction(JSONArray::optString)).collect(Collectors.toSet());
+                                    final Set<String> filenameSet = Optional.of(e.getKey())
+                                            .map(row::getProperty)
+                                            .map(s -> s.split(";"))
+                                            .stream()
+                                            .flatMap(Arrays::stream)
+                                            .filter(s -> !anyMatch(s, tempFilePathSet))
+                                            .collect(Collectors.toSet());
 
-                                        row.put(e.getKey(), Stream.concat(tempFilePathSet.stream(), filenameSet.stream()).collect(Collectors.joining(";")));
-                                    });
-                        } catch (JSONException ex) {
-                            LogUtil.error(getClassName(), ex, ex.getMessage());
-                        }
+                                    row.put(e.getKey(), Stream.concat(tempFilePathSet.stream(), filenameSet.stream()).collect(Collectors.joining(";")));
+                                });
                     }
 
                     rowSet.add(row);
