@@ -335,6 +335,22 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                 laterToBeEscaped = getValueLabel(formDefId, fieldId, value);
             }
 
+            // Format type : OPTIONS MULTI-VALUE
+            else if (formatType.equalsIgnoreCase("optionvalues")) {
+                final String formDefId;
+                final String fieldId;
+
+                final Entry<String, String> formAndField = getFormAndField(header, format);
+                formDefId = formAndField.getKey();
+                fieldId = formAndField.getValue();
+
+                laterToBeEscaped = Arrays.stream(value.split(";"))
+                    .map(String::trim)
+                    .filter(Predicate.not(String::isEmpty))
+                    .map(v -> getValueLabel(formDefId, fieldId, v))
+                    .collect(Collectors.joining(";"));
+            }
+
             // Format type : C-INTEGER
             else if (!value.isEmpty() && formatType.equals("cint")) {
                 laterToBeEscaped = String.format("%" + format + "d", Integer.parseInt(value));
@@ -894,6 +910,13 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
 
             // OPTIONS
             else if ("options".equals(formatType)) {
+                final Entry<String, String> formAndField = getFormAndField(header, format);
+                formDefId = formAndField.getKey();
+                fieldId = formAndField.getValue();
+            }
+
+            // OPTIONS MULTI-VALUE
+            else if ("optionvalues".equals(formatType)) {
                 final Entry<String, String> formAndField = getFormAndField(header, format);
                 formDefId = formAndField.getKey();
                 fieldId = formAndField.getValue();

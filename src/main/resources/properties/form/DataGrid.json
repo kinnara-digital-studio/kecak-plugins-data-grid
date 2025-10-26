@@ -79,6 +79,10 @@
                                 "label": "@@datagrid.formatType.options@@"
                             },
                             {
+                                "value": "optionvalues",
+                                "label": "Options Multi-Value"
+                            },
+                            {
                                 "value": "cint",
                                 "label": "@@datagrid.formatType.cint@@"
                             },
