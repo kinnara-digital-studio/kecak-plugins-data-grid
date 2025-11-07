@@ -5,6 +5,7 @@ import org.joget.apps.app.service.AppUtil;
 import org.joget.apps.form.model.*;
 import org.joget.apps.form.service.FormUtil;
 import org.joget.plugin.base.PluginManager;
+import org.json.JSONObject;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Nonnull;
@@ -40,10 +41,10 @@ public class Utilities {
                 .orElse(originalRows);
     }
 
-    public static String getJsonrowString(final DataGrid gridElement, final String json) {
+    public static String getJsonrowString(final DataGrid gridElement, final JSONObject json) {
         return Optional.ofNullable(gridElement)
                 .map(FormUtil::getElementParameterName)
-                .map(parameterName -> "<textarea class='jsonFormBinder' name='" + parameterName + "_jsonrow'>" + json + "</textarea>")
+                .map(parameterName -> "<textarea class='jsonFormBinder' name='" + parameterName + "_jsonrow'>" + json.toString() + "</textarea>")
                 .orElse("");
     }
 

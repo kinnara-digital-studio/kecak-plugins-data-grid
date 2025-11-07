@@ -1506,8 +1506,8 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
         final AppDefinition appDefinition = AppUtil.getCurrentAppDefinition();
         final Map<String, String>[] columnProperties = getColumnProperties();
         return Optional.ofNullable(rowSet)
-                .map(Collection::stream)
-                .orElseGet(Stream::empty)
+                .stream()
+                .flatMap(Collection::stream)
                 .map(Try.onFunction(row -> {
                     final JSONObject jsonRow = new JSONObject(row);
                     return Arrays.stream(columnProperties)
@@ -1519,7 +1519,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                                 json.put("id", row.getId());
 
                                 json.remove("jsonrow");
-                                json.put("jsonrow", Utilities.getJsonrowString(this, jsonRow.toString()));
+                                json.put("jsonrow", Utilities.getJsonrowString(this, jsonRow));
                                 return json;
                             })));
                 }))
@@ -1868,8 +1868,8 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     protected String[] explodes(String source) {
         return Optional.ofNullable(source)
                 .map(s -> s.split(";"))
-                .map(Arrays::stream)
-                .orElseGet(Stream::empty)
+                .stream()
+                .flatMap(Arrays::stream)
                 .map(String::trim)
                 .filter(this::isNotEmpty)
                 .toArray(String[]::new);

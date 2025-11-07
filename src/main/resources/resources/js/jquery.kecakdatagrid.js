@@ -78,15 +78,17 @@
         },
         
         edit: function() {
-            var row = $(this).parents('tr.grid-row');
-            var container = $(this).parents('div.grid');
+            let row = $(this).parents('tr.grid-row');
+            let container = $(this).parents('div.grid');
 
             javascriptEnhancementOnFormLoad[methods.getFrameId($(container).attr('id'))]($(container), this);
 
-            var defaultValues = JSON.parse($(container).find("#defaultValues").val());
-            var rowValues = JSON.parse($(row).find('textarea[id$=_jsonrow]').val());
+            let defaultValues = JSON.parse($(container).find("#defaultValues").val());
+            let jsonRow = JSON.parse($(row).find('textarea[id$=_jsonrow]').val());
+            //let rowValues = jsonRow._tempRequestParamsMap ? jsonRow._tempRequestParamsMap : jsonRow;
+            let rowValues = jsonRow;
 
-            for(var i in defaultValues) {
+            for(let i in defaultValues) {
                 if(!rowValues[i] || rowValues[i] == "")
                     rowValues[i] = defaultValues[i];
             }
