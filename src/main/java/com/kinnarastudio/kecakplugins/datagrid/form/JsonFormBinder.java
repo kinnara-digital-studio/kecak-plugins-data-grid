@@ -2,6 +2,7 @@ package com.kinnarastudio.kecakplugins.datagrid.form;
 
 import com.kinnarastudio.commons.Declutter;
 import com.kinnarastudio.commons.Try;
+import com.kinnarastudio.commons.jsonstream.JSONCollectors;
 import com.kinnarastudio.commons.jsonstream.JSONObjectEntry;
 import com.kinnarastudio.commons.jsonstream.JSONStream;
 import com.kinnarastudio.kecakplugins.datagrid.util.Utilities;
@@ -19,6 +20,7 @@ import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,7 +58,7 @@ public class JsonFormBinder extends FormBinder
         final Map<String, Object> enhancementStoreBinderProps = (Map<String, Object>) form.getProperty(DataGrid.PROPS_ENHANCEMENT_STORE_BINDER);
         final FormStoreBinder enhancementStoreBinder = pluginManager.getPlugin(enhancementStoreBinderProps);
         final Optional<FormRow> optRow = Utilities.executeOnFormSubmitEnhancement(form, enhancementStoreBinder, submittedRows, formData).stream().findFirst();
-        if (!optRow.isPresent()) {
+        if (optRow.isEmpty()) {
             return null;
         }
 
@@ -66,8 +68,8 @@ public class JsonFormBinder extends FormBinder
                 .map(FormRow::getId)
                 .map(s -> formDataDao.load(form, s))
                 .map(FormRow::entrySet)
-                .map(Collection::stream)
-                .orElseGet(Stream::empty)
+                .stream()
+                .flatMap(Collection::stream)
                 .forEach(dbEntry -> {
                     final String id = dbEntry.getKey().toString();
                     final String value = dbEntry.getValue().toString();
@@ -80,7 +82,7 @@ public class JsonFormBinder extends FormBinder
                 });
 
         final Optional<DataGrid> optFormGrid = optGridElement(form);
-        if (!optFormGrid.isPresent()) {
+        if (optFormGrid.isEmpty()) {
             return null;
         }
 
@@ -89,12 +91,12 @@ public class JsonFormBinder extends FormBinder
         final JSONObject json = new JSONObject(row);
         extractTempFilePath(row).ifPresent(Try.onConsumer(s -> json.put(FormUtil.PROPERTY_TEMP_FILE_PATH, s)));
 
-        row.put("jsonrow", Utilities.getJsonrowString(grid, json.toString()));
+        row.put("jsonrow", Utilities.getJsonrowString(grid, json));
 
         // set default values
         Arrays.stream(grid.getColumnProperties())
                 .map(grid::getField)
-                .filter(s -> !row.containsKey(s))
+                .filter(Predicate.not(row::containsKey))
                 .forEach(s -> row.put(s, ""));
 
         // apply formatting
@@ -124,37 +126,49 @@ public class JsonFormBinder extends FormBinder
     public FormRowSet load(Element element, String primaryKey, FormData formData) {
         HttpServletRequest request = WorkflowUtil.getHttpServletRequest();
 
-        FormRowSet rowSet = new FormRowSet();
-        Optional.of("_jsonFormData")
+        // sent from jquery.kecakdatagrid.js#popupForm
+        final JSONObject jsonFormData = Optional.of("_jsonFormData")
                 .map(request::getParameter)
-                .filter(this::isNotEmpty)
+                .filter(Predicate.not(String::isEmpty))
                 .map(Try.onFunction(JSONObject::new))
-                .map(json -> JSONStream.of(json, Try.onBiFunction(JSONObject::get))
-                        .collect(Collectors.toMap(JSONObjectEntry::getKey, JSONObjectEntry::getValue, (oldValue, newValue) -> newValue, FormRow::new)))
-                .ifPresent(row -> {
-                    if (row.containsKey(FormUtil.PROPERTY_TEMP_FILE_PATH)) {
-                        Optional.ofNullable(row.getProperty(FormUtil.PROPERTY_TEMP_FILE_PATH))
-                                .map(Try.onFunction(JSONObject::new, (JSONException ignored) -> null))
+                .orElseGet(JSONObject::new);
+
+        // check for temporary values, otherwise get the original values
+        final JSONObject jsonRow = Optional.of(FormUtil.PROPERTY_TEMP_REQUEST_PARAMS)
+                .map(jsonFormData::optJSONObject)
+                .map(json -> JSONStream.of(jsonFormData, Try.onBiFunction(JSONObject::get))
+                        .map(JSONObjectEntry::getKey)
+                        .filter(json::has)
+                        .collect(JSONCollectors.toJSONObject(s -> s, Try.onFunction(s -> json.getJSONArray(s).getString(0)))))
+                .orElse(jsonFormData);
+
+        // convert JSON to FormRow
+        final FormRow row = JSONStream.of(jsonRow, Try.onBiFunction(JSONObject::get))
+                .collect(Collectors.toMap(JSONObjectEntry::getKey, JSONObjectEntry::getValue, (oldValue, newValue) -> newValue, FormRow::new));
+
+        if (row.containsKey(FormUtil.PROPERTY_TEMP_FILE_PATH)) {
+            Optional.ofNullable(row.getProperty(FormUtil.PROPERTY_TEMP_FILE_PATH))
+                    .map(Try.onFunction(JSONObject::new, (JSONException ignored) -> null))
+                    .stream()
+                    .flatMap(j -> JSONStream.of(j, Try.onBiFunction(JSONObject::getJSONArray)))
+                    .forEach(e -> {
+                        final Set<String> tempFilePathSet = JSONStream.of(e.getValue(), Try.onBiFunction(JSONArray::optString)).collect(Collectors.toSet());
+                        final Set<String> filenameSet = Optional.of(e.getKey())
+                                .map(row::getProperty)
+                                .map(s -> s.split(";"))
                                 .stream()
-                                .flatMap(j -> JSONStream.of(j, Try.onBiFunction(JSONObject::getJSONArray)))
-                                .forEach(e -> {
-                                    final Set<String> tempFilePathSet = JSONStream.of(e.getValue(), Try.onBiFunction(JSONArray::optString)).collect(Collectors.toSet());
-                                    final Set<String> filenameSet = Optional.of(e.getKey())
-                                            .map(row::getProperty)
-                                            .map(s -> s.split(";"))
-                                            .stream()
-                                            .flatMap(Arrays::stream)
-                                            .filter(s -> !anyMatch(s, tempFilePathSet))
-                                            .collect(Collectors.toSet());
+                                .flatMap(Arrays::stream)
+                                .filter(s -> !anyMatch(s, tempFilePathSet))
+                                .collect(Collectors.toSet());
 
-                                    row.put(e.getKey(), Stream.concat(tempFilePathSet.stream(), filenameSet.stream()).collect(Collectors.joining(";")));
-                                });
-                    }
+                        row.put(e.getKey(), Stream.concat(tempFilePathSet.stream(), filenameSet.stream()).collect(Collectors.joining(";")));
+                    });
+        }
 
-                    rowSet.add(row);
-                });
-
-        return rowSet;
+        return new FormRowSet() {{
+            setMultiRow(false);
+            add(row);
+        }};
     }
 
     protected boolean anyMatch(String filename, Set<String> tempFilePathSet) {
