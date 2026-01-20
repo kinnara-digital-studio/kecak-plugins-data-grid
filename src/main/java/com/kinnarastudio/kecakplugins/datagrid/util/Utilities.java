@@ -49,16 +49,9 @@ public class Utilities {
     }
 
 
+    @Deprecated
     @Nonnull
     public static Stream<Element> elementStream(@Nonnull Element element, FormData formData) {
-        if (!element.isAuthorize(formData)) {
-            return Stream.empty();
-        }
-
-        Stream<Element> stream = Stream.of(element);
-        for (Element child : element.getChildren()) {
-            stream = Stream.concat(stream, elementStream(child, formData));
-        }
-        return stream;
+        return FormUtil.elementStream(element, formData);
     }
 }

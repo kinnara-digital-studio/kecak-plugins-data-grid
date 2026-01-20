@@ -1211,7 +1211,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
 
             final Map<String, String[]> tempFilePath = new HashMap<>();
 
-            FormRow row = Utilities.elementStream(form, formData)
+            FormRow row = FormUtil.elementStream(form, formData)
                     .filter(not(e -> e instanceof FormContainer))
                     .collect(FormRow::new, Try.onBiConsumer((r, e) -> {
                         final String elementId = e.getPropertyString("id");
@@ -1377,7 +1377,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     protected FormRow processRequestBody(@Nonnull final Form form, @Nonnull final FormData formData, JSONObject requestBody) {
         final FormRow row = new FormRow();
 
-        Utilities.elementStream(form, formData)
+        FormUtil.elementStream(form, formData)
                 .filter(not(e -> e instanceof FormContainer))
                 .forEach(Try.onConsumer(element -> {
                     String key = element.getPropertyString("id");
