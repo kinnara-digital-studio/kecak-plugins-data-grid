@@ -38,6 +38,16 @@ public class Utilities {
     public static FormRowSet executeOnFormSubmitEnhancement(Element itemForm, FormStoreBinder enhancementStoreBinder, @Nonnull FormRowSet originalRows, FormData validatedFormData) {
         return Optional.ofNullable(enhancementStoreBinder)
                 .map(b -> b.store(itemForm, originalRows, validatedFormData))
+                .map(rows -> {
+                    if (!rows.isMultiRow() && !rows.isEmpty()) {
+                        return new FormRowSet() {{
+                            // only take first record
+                            add(rows.get(0));
+                        }};
+                    }
+
+                    return rows;
+                })
                 .orElse(originalRows);
     }
 
