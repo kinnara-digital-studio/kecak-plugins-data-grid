@@ -57,29 +57,10 @@ public class JsonFormBinder extends FormBinder
         final PluginManager pluginManager = (PluginManager) AppUtil.getApplicationContext().getBean("pluginManager");
         final Map<String, Object> enhancementStoreBinderProps = (Map<String, Object>) form.getProperty(DataGrid.PROPS_ENHANCEMENT_STORE_BINDER);
         final FormStoreBinder enhancementStoreBinder = pluginManager.getPlugin(enhancementStoreBinderProps);
-        final Optional<FormRow> optRow = Utilities.executeOnFormSubmitEnhancement(form, enhancementStoreBinder, submittedRows, formData).stream().findFirst();
-        if (optRow.isEmpty()) {
+        final FormRowSet enhanchedRows = Utilities.executeOnFormSubmitEnhancement(form, enhancementStoreBinder, submittedRows, formData);
+        if (enhanchedRows.isEmpty()) {
             return null;
         }
-
-        final FormRow row = optRow.get();
-
-        Optional.of(row)
-                .map(FormRow::getId)
-                .map(s -> formDataDao.load(form, s))
-                .map(FormRow::entrySet)
-                .stream()
-                .flatMap(Collection::stream)
-                .forEach(dbEntry -> {
-                    final String id = dbEntry.getKey().toString();
-                    final String value = dbEntry.getValue().toString();
-
-                    final Optional<Element> optElement = Optional.of(id)
-                            .map(s -> FormUtil.findElement(s, form, formData))
-                            .filter(e -> FormUtil.isReadonly(e, formData));
-
-                    optElement.ifPresent(e -> row.setProperty(id, value));
-                });
 
         final Optional<DataGrid> optFormGrid = optGridElement(form);
         if (optFormGrid.isEmpty()) {
@@ -88,29 +69,51 @@ public class JsonFormBinder extends FormBinder
 
         final DataGrid grid = optFormGrid.get();
 
-        final JSONObject json = new JSONObject(row);
-        extractTempFilePath(row).ifPresent(Try.onConsumer(s -> json.put(FormUtil.PROPERTY_TEMP_FILE_PATH, s)));
+        final FormRowSet rowSet = enhanchedRows.stream()
+                .map(row -> {
+                    Optional.of(row)
+                            .map(FormRow::getId)
+                            .map(s -> formDataDao.load(form, s))
+                            .map(FormRow::entrySet)
+                            .stream()
+                            .flatMap(Collection::stream)
+                            .forEach(dbEntry -> {
+                                final String id = dbEntry.getKey().toString();
+                                final String value = dbEntry.getValue().toString();
 
-        row.put("jsonrow", Utilities.getJsonrowString(grid, json));
+                                final Optional<Element> optElement = Optional.of(id)
+                                        .map(s -> FormUtil.findElement(s, form, formData))
+                                        .filter(e -> FormUtil.isReadonly(e, formData));
 
-        // set default values
-        Arrays.stream(grid.getColumnProperties())
-                .map(grid::getField)
-                .filter(Predicate.not(row::containsKey))
-                .forEach(s -> row.put(s, ""));
+                                optElement.ifPresent(e -> row.setProperty(id, value));
+                            });
 
-        // apply formatting
-        Arrays.stream(grid.getColumnProperties())
-                .forEach(m -> {
-                    final String field = grid.getField(m);
-                    final String value = row.getProperty(field);
-                    final String rowId = row.getId();
-                    final String formattedValue = grid.formatColumn(field, m, rowId, value, appDefinition.getAppId(), appDefinition.getVersion(), "");
-                    row.setProperty(field, formattedValue);
-                });
 
-        final FormRowSet rowSet = new FormRowSet();
-        rowSet.add(row);
+                    final JSONObject json = new JSONObject(row);
+                    extractTempFilePath(row).ifPresent(Try.onConsumer(s -> json.put(FormUtil.PROPERTY_TEMP_FILE_PATH, s)));
+
+                    row.put("jsonrow", Utilities.getJsonrowString(grid, json));
+
+                    // set default values
+                    Arrays.stream(grid.getColumnProperties())
+                            .map(grid::getField)
+                            .filter(Predicate.not(row::containsKey))
+                            .forEach(s -> row.put(s, ""));
+
+                    // apply formatting
+                    Arrays.stream(grid.getColumnProperties())
+                            .forEach(m -> {
+                                final String field = grid.getField(m);
+                                final String value = row.getProperty(field);
+                                final String rowId = row.getId();
+                                final String formattedValue = grid.formatColumn(field, m, rowId, value, appDefinition.getAppId(), appDefinition.getVersion(), "");
+                                row.setProperty(field, formattedValue);
+                            });
+
+                    return row;
+                }).collect(Collectors.toCollection(FormRowSet::new));
+
+        rowSet.setMultiRow(true);
 
         return rowSet;
     }

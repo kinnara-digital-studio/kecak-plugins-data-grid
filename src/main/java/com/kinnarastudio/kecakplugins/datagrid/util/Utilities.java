@@ -29,8 +29,8 @@ public class Utilities {
         FormStoreBinder enhancementStoreBinder = pluginManager.getPlugin(propStoreBinderEnhancement);
         return Optional.of(rowSet)
                 .map(r -> Utilities.executeOnFormSubmitEnhancement(form, enhancementStoreBinder, r, validatedFormData))
-                .map(Collection::stream)
-                .orElseGet(Stream::empty)
+                .stream()
+                .flatMap(Collection::stream)
                 .findFirst()
                 .orElse(originalRow);
     }

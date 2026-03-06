@@ -134,35 +134,44 @@
                     var table = $(this).find("table");
 
                     // clone template
-                    var template = $(table).find(".grid-row-template");
-                    var newRow = $(template).clone();
-                    newRow.removeClass("grid-row-template");
-                    newRow.css('display','');
-                    newRow.addClass("grid-row");
+                    let template = $(table).find(".grid-row-template");
 
-                    methods.decorateRow(newRow);
-                    methods.fillValue(this, newRow, args.result);
-                    
-                    // append row
-                    table.append(newRow);
-                    
-                    var summaryRow = table.find("tr.grid-summary").clone();
-                    if(summaryRow != undefined && summaryRow.length > 0) {
-                    	// summary row found
-                    	
-	                    // remove summary
-	                    table.find("tr.grid-summary").remove();
-	                    
-	                    // append summary
-	                    table.append(summaryRow);
-	                    
-	                    methods.updateSummary(table);
+
+                    let result = JSON.parse(args.result);
+                    let arr = transpose(result);
+
+                    for(let i in arr) {
+                        let obj = arr[i];
+                        let newRow = $(template).clone();
+                        newRow.removeClass("grid-row-template");
+                        newRow.css('display','');
+                        newRow.addClass("grid-row");
+
+                        methods.decorateRow(newRow);
+
+                        methods.fillValue(this, newRow, obj);
+
+                        // append row
+                        table.append(newRow);
+
+                        var summaryRow = table.find("tr.grid-summary").clone();
+                        if(summaryRow != undefined && summaryRow.length > 0) {
+                            // summary row found
+
+                            // remove summary
+                            table.find("tr.grid-summary").remove();
+
+                            // append summary
+                            table.append(summaryRow);
+
+                            methods.updateSummary(table);
+                        }
+
+                        // set input names and values
+                        var rowIndex = $(table).find("tr.grid-row").length-1;
+                        methods.updateRowIndex(newRow, rowIndex);
+                        methods.disabledMoveAction($(newRow).parent().parent());
                     }
-	                    
-                    // set input names and values
-                    var rowIndex = $(table).find("tr.grid-row").length-1;
-                    methods.updateRowIndex(newRow, rowIndex);
-                    methods.disabledMoveAction($(newRow).parent().parent());
 
                     JPopup.hide(frameId);
 
@@ -184,12 +193,18 @@
                     var table = $(this).find("table");
                     var row = $(table).find("#"+args.rowId);
 
-                    methods.fillValue(this, row, args.result);
-                    
-                    // update summary row
-                    var summaryRow = table.find("tr.grid-summary");
-                    if(summaryRow != undefined && summaryRow.length > 0) {
-                    	methods.updateSummary(table);
+                    let result = JSON.parse(args.result);
+                    let arr = transpose(result);
+
+                    for(let i in arr) {
+                        let obj = arr[i];
+                        methods.fillValue(this, row, obj);
+
+                        // update summary row
+                        var summaryRow = table.find("tr.grid-summary");
+                        if(summaryRow != undefined && summaryRow.length > 0) {
+                            methods.updateSummary(table);
+                        }
                     }
 
                     JPopup.hide(frameId);
@@ -207,8 +222,8 @@
             var uniqueKey = $(container).find('#uniqueKey').val();
             if (uniqueKey && uniqueKey != null) {
                 // find existing row
-                var obj = eval("[" + args.result + "]");
-                var uniqueVal = obj[0][uniqueKey];
+                var obj = JSON.parse(args.result);
+                var uniqueVal = obj[uniqueKey];
                 if (uniqueVal) {
                     $(container).find(".grid-cell[column_key=" + uniqueKey + "]").each(function() {
                         if (args.rowId && args.rowId != null) {
@@ -325,16 +340,16 @@
         },
         
         fillValue: function(element, row, json) {
-            var obj = eval("["+json+"]");
+            var obj = json; // eval("["+json+"]");
             $(row).find('span.grid-cell').each(function(){
                 var column = $(this).attr("column_key");
-                var value = obj[0][column];
+                var value = json[column];
                 
                 methods.formatValue(this, column, value);
             });
 
             $(row).find('textarea[id$="_jsonrow"]').each(function(){
-                $(this).html(json);
+                $(this).html(JSON.stringify(json));
             });
         },
         
@@ -537,6 +552,30 @@
         	}
         }
     };
+
+    // transpose obj to arr
+    function transpose(obj) {
+        debugger;
+        let arr = [];
+        for(let key in obj) {
+            let value = obj[key];
+            if(typeof value == 'string') {
+                return [obj];
+            } else {
+                let val = obj[key];
+                for(let i in val) {
+                    if(i.match(/^(?<!0)\d+$/g)) {
+                        if(!arr[i]) {
+                            arr[i] = {};
+                        }
+                        arr[i][key] = obj[key][i];
+                    }
+                }
+            }
+        }
+
+        return arr;
+    }
 
     $.fn.kecakdatagrid = function( method ) {
 

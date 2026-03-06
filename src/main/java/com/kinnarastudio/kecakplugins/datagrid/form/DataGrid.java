@@ -104,7 +104,10 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
 
     @Override
     public String getPropertyOptions() {
-        Object[] arguments = new Object[]{};
+        Object[] arguments = new Object[]{
+                DataGridBinder.class.getName(),
+                DataGridBinder.class.getName()
+        };
         return AppUtil.readPluginResource(this.getClass().getName(), "/properties/form/DataGrid.json", arguments, true, "messages/DataGrid").replaceAll("\"", "'");
     }
 

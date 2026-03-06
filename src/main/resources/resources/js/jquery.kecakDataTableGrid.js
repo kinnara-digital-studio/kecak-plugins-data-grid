@@ -122,7 +122,7 @@
         addRow: function(data){
             return $(this).each(function(){
                 let oTable = $(this).find('table').dataTable().api();
-                let node = oTable.row.add(data).draw().node();
+                let node = oTable.rows.add(transpose(data)).draw().nodes();
 
                 var frameId = methods.getFrameId($(this).attr('id'));
                 JPopup.hide(frameId);
@@ -378,6 +378,27 @@
         	}
         }
     };
+
+    // transpose obj to arr
+    function transpose(obj) {
+        debugger;
+        let arr = [];
+        for(let key in obj) {
+            let value = obj[key];
+            if(typeof value == 'string') {
+                return [obj];
+            } else {
+                for(let i in obj[key]) {
+                    if(!arr[i]) {
+                        arr[i] = {};
+                    }
+                    arr[i][key] = obj[key][i];
+                }
+            }
+        }
+
+        return arr;
+    }
 
     $.fn.kecakDataTableFormGrid = function( method ) {
         if ( methods[method] ) {
