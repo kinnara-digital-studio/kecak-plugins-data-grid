@@ -555,7 +555,6 @@
 
     // transpose obj to arr
     function transpose(obj) {
-        debugger;
         let arr = [];
         for(let key in obj) {
             let value = obj[key];
