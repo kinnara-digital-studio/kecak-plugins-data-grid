@@ -955,8 +955,16 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
             final FormData formData = formService.executeFormOptionsBinders(element, new FormData());
             final Collection<FormRow> optionMap = FormUtil.getElementPropertyOptionsMap(element, formData);
 
-            final Map<String, String> options = optionMap.stream()
-                    .collect(Collectors.toMap(row -> row.getProperty("value"), row -> row.getProperty("label")));
+            final Map<String, String> options = new HashMap<>();
+            if (optionMap != null) {
+                for (FormRow row : optionMap) {
+                    String val = row.getProperty("value");
+                    String lbl = row.getProperty("label");
+                    if (val != null) {
+                        options.putIfAbsent(val, lbl != null ? lbl : "");
+                    }
+                }
+            }
 
             if (options.isEmpty()) {
                 LogUtil.warn(getClassName(), "Options binder in form [" + formDefId + "] field [" + fieldId + "] is not found");

@@ -107,7 +107,7 @@ public class JsonFormBinder extends FormBinder
                                 final String value = row.getProperty(field);
                                 final String rowId = row.getId();
                                 final String formattedValue = grid.formatColumn(field, m, rowId, value, appDefinition.getAppId(), appDefinition.getVersion(), "");
-                                row.setProperty(field, formattedValue);
+                                row.setProperty(field + "_formatted", formattedValue);
                             });
 
                     return row;

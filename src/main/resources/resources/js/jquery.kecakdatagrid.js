@@ -343,13 +343,20 @@
             var obj = json; // eval("["+json+"]");
             $(row).find('span.grid-cell').each(function(){
                 var column = $(this).attr("column_key");
-                var value = json[column];
+                var value = json[column + "_formatted"] !== undefined ? json[column + "_formatted"] : json[column];
                 
                 methods.formatValue(this, column, value);
             });
 
+            var jsonToSave = $.extend({}, json);
+            for(var key in jsonToSave) {
+                if(key.endsWith("_formatted")) {
+                    delete jsonToSave[key];
+                }
+            }
+
             $(row).find('textarea[id$="_jsonrow"]').each(function(){
-                $(this).html(JSON.stringify(json));
+                $(this).html(JSON.stringify(jsonToSave));
             });
         },
         
