@@ -196,9 +196,25 @@
                     let result = JSON.parse(args.result);
                     let arr = transpose(result);
 
+                    let isFirst = true;
                     for(let i in arr) {
                         let obj = arr[i];
-                        methods.fillValue(this, row, obj);
+                        if (isFirst) {
+                            methods.fillValue(this, row, obj);
+                            isFirst = false;
+                        } else {
+                            let template = $(table).find(".grid-row-template");
+                            let newRow = $(template).clone();
+                            newRow.removeClass("grid-row-template");
+                            newRow.css('display','');
+                            newRow.addClass("grid-row");
+
+                            methods.decorateRow(newRow);
+                            methods.fillValue(this, newRow, obj);
+
+                            row.after(newRow);
+                            row = newRow;
+                        }
 
                         // update summary row
                         var summaryRow = table.find("tr.grid-summary");
@@ -206,6 +222,9 @@
                             methods.updateSummary(table);
                         }
                     }
+                    
+                    methods.updateAllRowIndex(table);
+                    methods.disabledMoveAction(table);
 
                     JPopup.hide(frameId);
 
