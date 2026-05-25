@@ -209,6 +209,10 @@
                             newRow.css('display','');
                             newRow.addClass("grid-row");
 
+                            // Remove ID for new cloned rows so they get saved as new records
+                            delete obj['id'];
+                            delete obj['_id'];
+
                             methods.decorateRow(newRow);
                             methods.fillValue(this, newRow, obj);
 
@@ -581,22 +585,35 @@
 
     // transpose obj to arr
     function transpose(obj) {
+        if (Array.isArray(obj)) return obj;
+
         let arr = [];
-        for(let key in obj) {
+        let maxLen = 1;
+
+        // First pass: find the max length among array properties
+        for (let key in obj) {
             let value = obj[key];
-            if(typeof value == 'string') {
-                return [obj];
-            } else {
-                let val = obj[key];
-                for(let i in val) {
-                    if(i.match(/^(?<!0)\d+$/g)) {
-                        if(!arr[i]) {
-                            arr[i] = {};
-                        }
-                        arr[i][key] = obj[key][i];
-                    }
+            if (typeof value === 'object' && value != null) {
+                let len = 0;
+                for (let i in value) {
+                    if (i.match(/^\d+$/)) len++;
+                }
+                if (len > maxLen) maxLen = len;
+            }
+        }
+
+        // Second pass: build the transposed array
+        for (let i = 0; i < maxLen; i++) {
+            let newObj = {};
+            for (let key in obj) {
+                let value = obj[key];
+                if (typeof value === 'object' && value != null) {
+                    newObj[key] = value[i] !== undefined ? value[i] : (value[0] !== undefined ? value[0] : "");
+                } else {
+                    newObj[key] = value;
                 }
             }
+            arr.push(newObj);
         }
 
         return arr;
