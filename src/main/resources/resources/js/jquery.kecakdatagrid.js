@@ -197,9 +197,13 @@
                     let arr = transpose(result);
 
                     let isFirst = true;
+                    let originalId = null;
+                    let originalUnderscoreId = null;
                     for(let i in arr) {
                         let obj = arr[i];
                         if (isFirst) {
+                            originalId = obj['id'];
+                            originalUnderscoreId = obj['_id'];
                             methods.fillValue(this, row, obj);
                             isFirst = false;
                         } else {
@@ -210,8 +214,13 @@
                             newRow.addClass("grid-row");
 
                             // Remove ID for new cloned rows so they get saved as new records
-                            delete obj['id'];
-                            delete obj['_id'];
+                            // Only remove if they are identical to the original row's ID
+                            if (obj['id'] == originalId) {
+                                delete obj['id'];
+                            }
+                            if (obj['_id'] == originalUnderscoreId) {
+                                delete obj['_id'];
+                            }
 
                             methods.decorateRow(newRow);
                             methods.fillValue(this, newRow, obj);
