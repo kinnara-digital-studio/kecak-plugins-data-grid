@@ -194,13 +194,13 @@
 		                            	<#if headers[key]['formatType'] == 'form' && headers[key]['format']??>
 		                            		<!-- form -->
 		                            		<#if row[headers[key]['value'] + '_label_formattachment']??>
-		                            			<a href="#" id="${elementParamName!}_${headers[key]['value']?html}" class="grid-action-display-attachment-form" data-rowindex=${row_index}>${element.formatColumn(headers[key]['value'], headers[key], row["id"], row[headers[key]['value'] + '_label_formattachment'], appId, appVersion, request.contextPath)}</a>
+		                            			<a href="#" id="${elementParamName!}_${headers[key]['value']?html}" class="grid-action-display-attachment-form" data-rowindex=${row_index}>${element.formatColumn(headers[key]['value'], headers[key], row["id"]!"", row[headers[key]['value'] + '_label_formattachment']!"", appId, appVersion, request.contextPath)}</a>
 		                            		<#else>
-		                            			<i>${element.formatColumn(headers[key]['value'], headers[key], row["id"], row[headers[key]['value']], appId, appVersion, request.contextPath)}</i>
+		                            			<i>${element.formatColumn(headers[key]['value'], headers[key], row["id"]!"", row[headers[key]['value']]!"", appId, appVersion, request.contextPath)}</i>
 		                            		</#if>                        		
 		                            	<#else>
 		                            		<!-- text, file, image -->
-		                                	${element.formatColumn(headers[key]['value'], headers[key], row["id"], row[headers[key]['value']], appId, appVersion, request.contextPath)}
+		                                	${element.formatColumn(headers[key]['value'], headers[key], row["id"]!"", row[headers[key]['value']]!"", appId, appVersion, request.contextPath)}
 		                                </#if>
 		                            <#recover>
 		                            	<!-- recover -->
@@ -235,7 +235,7 @@
 					            			class="grid-summary">
 
 					            		<#if (rows?size > 0) >
-					            			${element.formatColumn(fieldId, headers[key], "", summary[fieldId], appId, appVersion, request.contextPath)}
+					            			${element.formatColumn(fieldId, headers[key], "", summary[fieldId]!"", appId, appVersion, request.contextPath)}
 					            		</#if>
 				            		</span>
 				            	</td>
