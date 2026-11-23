@@ -454,6 +454,16 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
                             .stream()
                             .flatMap(Collection::stream)
                             .filter(e -> e.getKey().equals(param) || e.getKey().contains(param + "_jsonrow"))
+                            .sorted(Comparator.comparingInt(e -> {
+                                String key = e.getKey();
+                                int idx = key.lastIndexOf('_');
+                                if (idx >= 0) {
+                                    try {
+                                        return Integer.parseInt(key.substring(idx + 1));
+                                    } catch (NumberFormatException ignored) {}
+                                }
+                                return 0;
+                            }))
                             .map(Entry::getValue)
                             .filter(Objects::nonNull)
                             .flatMap(Arrays::stream)
@@ -654,7 +664,7 @@ public class DataGrid extends Element implements FormBuilderPaletteElement, Plug
     protected FormRowSet convertJsonToFormRowSet(FormRowSet oriRowSet) throws JSONException {
         FormRowSet rowSet = new FormRowSet();
         rowSet.setMultiRow(true);
-        int i = 0;
+        int i = 1;
         for (FormRow row : oriRowSet) {
             FormRow newRow = Optional.of("jsonrow")
                     .map(row::get)
